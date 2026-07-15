@@ -1,443 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Daily Quiz PWA</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg-app: #f8fafc;
-      --surface: #ffffff;
-      --primary: #4f46e5;
-      --primary-light: #e0e7ff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --success: #10b981;
-      --success-light: #d1fae5;
-      --error: #ef4444;
-      --error-light: #fee2e2;
-      --border: #e2e8f0;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-      --radius: 16px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-app); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
-
-    .phone-container {
-      width: 100%; max-width: 480px; background: var(--surface);
-      min-height: 100vh; display: flex; flex-direction: column; position: relative;
-      box-shadow: 0 0 40px rgba(0,0,0,0.03);
-    }
-
-    header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 10; }
-    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
-
-    .screen { display: none; flex-direction: column; flex: 1; padding: 24px 20px; animation: fadeIn 0.25s ease-out; }
-    .screen.active { display: flex; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 6px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; background-color: var(--bg-app); }
-
-    .btn { width: 100%; min-height: 48px; padding: 12px 24px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
-    .btn-secondary { background: var(--bg-app); color: var(--text-main); border: 1px solid var(--border); }
-    .btn-danger { background: var(--error); color: white; }
-
-    nav { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; padding: 10px 12px; justify-content: space-around; z-index: 10; }
-    nav button { background: none; border: none; color: var(--text-muted); font-size: 0.75rem; font-weight: 500; display: flex; flex-direction: column; align-items: center; cursor: pointer; flex: 1; }
-    nav button.active { color: var(--primary); font-weight: 700; }
-
-    .progress-dots { display: flex; gap: 8px; margin-bottom: 24px; }
-    .dot { flex: 1; height: 6px; background: var(--border); border-radius: 3px; }
-    .dot.active { background: var(--primary); }
-
-    .quiz-option { border: 2px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer; font-weight: 500; }
-    .quiz-option.selected { border-color: var(--primary); background-color: var(--primary-light); }
-    .quiz-description a { color: var(--primary); font-weight: 600; text-decoration: underline; }
-
-    .leaderboard-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .rank-badge { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-app); display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
-    .rank-1 .rank-badge { background: #fef08a; color: #a16207; }
-    .rank-2 .rank-badge { background: #e2e8f0; color: #475569; }
-    .rank-3 .rank-badge { background: #fed7aa; color: #c2410c; }
-    .toast { position: absolute; top: 80px; left: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; display: none; z-index: 100; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Quiz Portal PWA</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: #f4f6f9; color: #333; }
+        .view-section { display: none; max-width: 600px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .view-section.active { display: block; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { background: #0066cc; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background: #0052a3; }
+        .error-banner { color: #d93838; background: #ffebeb; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; font-size: 14px; border: 1px solid #ffccd0; }
+        .success-banner { color: #2b7a43; background: #eafaf1; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; font-size: 14px; border: 1px solid #c7f3d6; }
+        .nav-header { display: flex; justify-content: space-between; max-width: 600px; margin: 0 auto 20px auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .nav-header span { cursor: pointer; color: #0066cc; font-weight: 500; }
+        .quiz-option { display: block; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 10px; cursor: pointer; background: #fafafa; }
+        .quiz-option:hover { background: #f0f7ff; border-color: #0066cc; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
+        .badge-Diamond { background: #e3f2fd; color: #0d47a1; }
+        .badge-Platinum { background: #eceff1; color: #263238; }
+        .badge-Gold { background: #fffde7; color: #f57f17; }
+        .badge-Silver { background: #fafafa; color: #616161; }
+        .gdpr-zone { border: 1px solid #ffccd0; background: #fff5f5; padding: 16px; border-radius: 8px; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; }
+    </style>
 </head>
 <body>
 
-  <div class="phone-container">
-    <div id="toast" class="toast"></div>
-    
-    <header>
-      <h1 id="header-title">Daily Quiz App</h1>
-      <span id="user-display" style="font-size: 0.85rem; color: var(--text-muted);"></span>
-    </header>
+    <!-- Simple Dynamic Navigation Layout Router Component -->
+    <div class="nav-header">
+        <span onclick="app.switchView('viewAuth')">Login/Register</span>
+        <span onclick="app.switchView('viewDashboard')">Dashboard</span>
+        <span onclick="app.switchView('viewQuiz')">Quiz</span>
+        <span onclick="app.switchView('viewAdmin')">Admin</span>
+    </div>
 
-    <!-- SCREEN 1: ONBOARDING -->
-    <main id="screen-auth" class="screen active">
-      <div class="card">
-        <h2 style="margin-bottom: 16px;">Create Account</h2>
-        <form id="register-form" onsubmit="handleRegister(event)">
-          <div class="form-group"><label>First Name</label><input type="text" id="reg-fname" required></div>
-          <div class="form-group"><label>Last Name</label><input type="text" id="reg-lname" required></div>
-          <div class="form-group"><label>Mobile Number</label><input type="tel" id="reg-mobile" required></div>
-          <div class="form-group"><label>Institute Name</label><input type="text" id="reg-institute" required></div>
-          <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" required></div>
-          <button type="submit" id="reg-btn" class="btn btn-primary">Create Free Account</button>
-        </form>
-      </div>
-      <div style="text-align: center; margin-top: 10px;">
-        <a href="#" onclick="showTemporaryLogin()" style="color: var(--primary); font-size: 0.9rem;">Already verified? Sign in here</a>
-      </div>
-    </main>
-
-    <!-- SCREEN 2: DASHBOARD -->
-    <main id="screen-dashboard" class="screen">
-      <div class="card" style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white;">
-        <h3>Your Progress</h3>
-        <div style="display: flex; justify-content: space-between; margin-top: 16px;">
-          <div>
-            <p style="font-size: 1.75rem; font-weight: 700;" id="dash-attempted">0</p>
-            <p style="font-size: 0.8rem; opacity: 0.8;">Quizzes Completed</p>
-          </div>
-          <div style="text-align: right;">
-            <p style="font-size: 1.75rem; font-weight: 700;" id="dash-status">Syncing...</p>
-            <p style="font-size: 0.8rem; opacity: 0.8;">Today's Target</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="quiz-cta-box">
-        <h3>Today's Quiz Challenge</h3>
-        <p class="quiz-description" id="dash-quiz-desc" style="color: var(--text-muted); font-size: 0.9rem; margin: 10px 0 20px 0;">Reading rows from cloud sheet database...</p>
-        <button class="btn btn-primary" id="start-quiz-btn" onclick="startQuiz()" disabled>Launch Quiz Module</button>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-bottom: 12px;">Top Performers 🏆</h3>
-        <div id="leaderboard-container"></div>
-      </div>
-    </main>
-
-    <!-- SCREEN 3: ACTIVE QUIZ PLAY -->
-    <main id="screen-quiz" class="screen">
-      <div class="progress-dots" id="quiz-dots">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      </div>
-      <div id="question-box">
-        <h2 id="quiz-question-text" style="font-size: 1.15rem; margin-bottom: 20px;">Fetching setup...</h2>
-        <div id="quiz-options-container"></div>
-      </div>
-      <div style="margin-top: auto;">
-        <button class="btn btn-primary" id="quiz-next-btn" onclick="nextQuestion()" disabled>Confirm & Next</button>
-      </div>
-    </main>
-
-    <!-- SCREEN 4: ACCOUNT PROFILE -->
-    <main id="screen-profile" class="screen">
-      <div class="card">
-        <h3>User Metrics</h3>
-        <div style="margin-top: 12px;"><p><strong>Active ID:</strong> <span id="prof-email"></span></p></div>
-      </div>
-      <button class="btn btn-danger" onclick="closeAccount()">Delete Profile Rows</button>
-    </main>
-
-    <!-- SCREEN 5: ADMIN GENERATOR -->
-    <main id="screen-admin" class="screen">
-      <div class="card">
-        <h3>Publish Daily Quiz Item</h3>
-        <form id="admin-quiz-form" onsubmit="addQuizSubmit(event)">
-          <div class="form-group"><label>Target Date</label><input type="date" id="adm-date" required></div>
-          <div class="form-group"><label>Description & Links (HTML Allowed)</label><textarea id="adm-desc" rows="2" placeholder="e.g. Check out <a href='URL' target='_blank'>video</a>."></textarea></div>
-          
-          <div style="border-top:1px dashed var(--border); padding-top:10px;">
-            <label style="font-weight:700;">Question Content Setup</label>
-            <input type="text" id="adm-q1" placeholder="Question 1 Text" required style="margin-bottom:6px;">
-            <input type="text" id="adm-opts1" placeholder="Option A, Option B, Option C, Option D" required style="margin-bottom:12px;">
-            <input type="text" id="adm-ans1" placeholder="Exact Correct Answer" required style="margin-bottom:16px;">
-          </div>
-          <button type="submit" id="admin-submit-btn" class="btn btn-primary">Publish to Sheet Array</button>
-        </form>
-      </div>
-      <div class="card">
-        <h3>Enrolled Candidates Matrix</h3>
-        <div id="admin-users-list" style="font-size:0.85rem; max-height:200px; overflow-y:auto;"></div>
-      </div>
-    </main>
-
-    <nav id="app-nav" style="display: none;">
-      <button onclick="switchScreen('dashboard')" id="nav-dashboard" class="active"><span>📊</span>Dashboard</button>
-      <button onclick="switchScreen('profile')" id="nav-profile"><span>👤</span>Profile</button>
-      <button onclick="switchScreen('admin')" id="nav-admin"><span>⚙️</span>Admin</button>
-    </nav>
-  </div>
-
-  <script>
-    // ===================================================
-    // ⚠️ PASTE YOUR UPDATED WEB APP URL STRING BELOW
-    // ===================================================
-    const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzMvgYwSoROZDIugMiAllXxIk5S9aKvNtNtvFQBuKrnUm_1NmpEdSs9G-JGWznQyFuMjQ/exec";
-
-    let currentUser = JSON.parse(localStorage.getItem('quiz_user')) || null;
-    let activeQuizData = null;
-    let currentQuestionIndex = 0;
-    let selectedAnswers = [];
-    let runtimeScore = 0;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      if (currentUser) bootstrapUserSession();
-    });
-
-    function showToast(msg) {
-      const el = document.getElementById("toast");
-      el.innerText = msg; el.style.display = "block";
-      setTimeout(() => el.style.display = "none", 4000);
-    }
-
-    function switchScreen(screenId) {
-      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-      
-      document.getElementById(`screen-${screenId}`).classList.add("active");
-      const navBtn = document.getElementById(`nav-${screenId}`);
-      if (navBtn) navBtn.classList.add("active");
-
-      if (screenId === 'dashboard' && currentUser) loadDashboardData();
-      if (screenId === 'admin') loadAdminData();
-    }
-
-    async function handleRegister(e) {
-      e.preventDefault();
-      const btn = document.getElementById("reg-btn");
-      btn.innerText = "⏳ Connecting to Database Matrix..."; btn.disabled = true;
-
-      try {
-        const resp = await fetch(API_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "register",
-            payload: {
-              firstName: document.getElementById("reg-fname").value,
-              lastName: document.getElementById("reg-lname").value,
-              mobile: document.getElementById("reg-mobile").value,
-              institute: document.getElementById("reg-institute").value,
-              email: document.getElementById("reg-email").value.trim().toLowerCase()
-            }
-          })
-        });
-        const res = await resp.json();
-        showToast(res.message);
-      } catch(err) {
-        showToast("Error executing registration script pipeline.");
-      } finally {
-        btn.innerText = "Create Free Account"; btn.disabled = false;
-      }
-    }
-
-    function showTemporaryLogin() {
-      const email = prompt("Enter your registered, verified email identity:");
-      if(email) {
-        currentUser = { email: email.trim().toLowerCase() };
-        localStorage.setItem('quiz_user', JSON.stringify(currentUser));
-        bootstrapUserSession();
-      }
-    }
-
-    function bootstrapUserSession() {
-      document.getElementById("app-nav").style.display = "flex";
-      document.getElementById("user-display").innerText = currentUser.email;
-      document.getElementById("prof-email").innerText = currentUser.email;
-      switchScreen("dashboard");
-    }
-
-    async function loadDashboardData() {
-      const ctaBox = document.getElementById("quiz-cta-box");
-      const descEl = document.getElementById("dash-quiz-desc");
-      const startBtn = document.getElementById("start-quiz-btn");
-      
-      descEl.innerText = "⏳ Connecting to Database Sheet Array... Please wait.";
-      startBtn.disabled = true;
-
-      try {
-        const url = `${API_ENDPOINT}?action=getDashboard&email=${encodeURIComponent(currentUser.email)}`;
-        const resp = await fetch(url);
-        const res = await resp.json();
+    <!-- 1. ONBOARDING & AUTH REGISTRATION SECTION (Student Features 6 & 7) -->
+    <div id="viewAuth" class="view-section active">
+        <h2>Student Onboarding & Access Portal</h2>
+        <div id="authError" class="error-banner"></div>
+        <div id="authSuccess" class="success-banner"></div>
         
-        if (res.success) {
-          document.getElementById("dash-attempted").innerText = res.data.attemptedCount;
-          
-          if(res.data.todayQuiz) {
-            activeQuizData = res.data.todayQuiz;
-            descEl.innerHTML = res.data.todayQuiz.description || "No criteria profile configured.";
-            document.getElementById("dash-status").innerText = "Available";
-            startBtn.disabled = false;
-            
-            if(res.data.alreadyDoneToday) {
-              ctaBox.innerHTML = "<h3>Today's Quiz Completed</h3><p style='color:var(--success); font-weight:600; margin-top:8px;'>Your score parameters have been registered for today.</p>";
-              document.getElementById("dash-status").innerText = "Finished";
-            }
-          } else {
-            descEl.innerText = "No daily quiz has been published by administration for today's date yet.";
-            document.getElementById("dash-status").innerText = "None";
-          }
+        <form id="formRegister">
+            <div class="form-group"><label>First Name</label><input type="text" id="regFirst" required></div>
+            <div class="form-group"><label>Last Name</label><input type="text" id="regLast" required></div>
+            <div class="form-group"><label>Mobile Number</label><input type="tel" id="regMobile" required></div>
+            <div class="form-group"><label>Institute Name</label><input type="text" id="regInstitute" required></div>
+            <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" required></div>
+            <button type="submit">Complete Registration</button>
+        </form>
+        <p style="text-align:center; font-size:13px; color:#666; margin-top:15px;">Note: A verification link will be emailed to activate authentication.</p>
+    </div>
 
-          const container = document.getElementById("leaderboard-container");
-          container.innerHTML = "";
-          if (res.data.top3 && res.data.top3.length > 0) {
-            res.data.top3.forEach((player, idx) => {
-              container.innerHTML += `
-                <div class="leaderboard-row rank-${idx+1}">
-                  <div style="display:flex; align-items:center;">
-                    <div class="rank-badge">${idx+1}</div>
-                    <span style="font-weight:600;">${player.name}</span>
-                  </div>
-                  <span style="font-weight:700; color:var(--primary);">${player.score} pts</span>
-                </div>`;
-            });
-          } else {
-            container.innerHTML = "<p style='color:var(--text-muted); font-size:0.85rem;'>No scores logged yet.</p>";
-          }
-        } else {
-          descEl.innerText = "🔴 " + res.message;
-        }
-      } catch(e) {
-        descEl.innerText = "🔴 System Network Connection Interrupted.";
-      }
-    }
+    <!-- 2. STUDENT DASHBOARD & LEADERBOARD VIEW (Student Features 2, 3, & 5) -->
+    <div id="viewDashboard" class="view-section">
+        <h2>Welcome Back, <span id="dashStudentName">Student</span></h2>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div style="background:#eef5fc; padding:15px; border-radius:8px; text-align:center;">
+                <h3 style="margin:0; font-size:28px; color:#0066cc;" id="statQuizCount">0</h3>
+                <small style="color:#555;">Total Quizzes Attempted</small>
+            </div>
+            <div style="background:#fef7ed; padding:15px; border-radius:8px; text-align:center;">
+                <h3 style="margin:0; font-size:28px; color:#c27803;" id="statMissedCount">0</h3>
+                <small style="color:#555;">Missed Quizzes This Month</small>
+            </div>
+        </div>
 
-    function startQuiz() {
-      currentQuestionIndex = 0; selectedAnswers = []; runtimeScore = 0;
-      switchScreen("quiz");
-      renderCurrentQuestion();
-    }
+        <h3>Top 3 Performers Leaderboard</h3>
+        <ol id="leaderboardList" style="padding-left:20px; font-weight:500;"></ol>
 
-    function renderCurrentQuestion() {
-      const dots = document.querySelectorAll("#quiz-dots .dot");
-      dots.forEach((d, idx) => {
-        d.className = "dot";
-        if (idx === currentQuestionIndex) d.classList.add("active");
-      });
+        <!-- 3. PROFILE SETTINGS & GDPR DATA DELETION INTERFACE (Student Feature 8) -->
+        <div class="gdpr-zone">
+            <h4 style="color:#d93838; margin:0 0 10px 0;">GDPR Account Controls & Privacy Protection</h4>
+            <p style="font-size:13px; margin:0 0 12px 0; color:#555;">You possess the absolute legal Right to Erasure. Closing your account completely purges your entire historical trace, quiz metrics, data schema rows, and verification profile permanently from our production database servers.</p>
+            <div class="form-group">
+                <label style="font-size:13px;">Reason for account closure:</label>
+                <textarea id="gdprReason" rows="2" placeholder="Provide reason for data purge..."></textarea>
+            </div>
+            <button type="button" id="btnGdprPurge" style="background:#d93838;">Wipe My Data & Close Account</button>
+        </div>
+    </div>
 
-      const qText = activeQuizData[`q${currentQuestionIndex + 1}`] || `Question ${currentQuestionIndex + 1}`;
-      const oRaw = activeQuizData[`opts${currentQuestionIndex + 1}`] || [];
-      
-      document.getElementById("quiz-question-text").innerText = qText;
-      const optContainer = document.getElementById("quiz-options-container");
-      optContainer.innerHTML = "";
+    <!-- 4. DAILY INTERACTIVE QUIZ INTERFACE ENGINE (Student Features 1 & 4) -->
+    <div id="viewQuiz" class="view-section">
+        <h2 style="margin-bottom:5px;">Daily Quiz Arena</h2>
+        <p style="color:#666; margin:0 0 20px 0; font-size:14px;">Question <span id="quizCurrentIndex">1</span> of 5</p>
+        <div id="quizError" class="error-banner"></div>
 
-      oRaw.forEach(opt => {
-        const cleanOpt = opt.trim();
-        if(!cleanOpt) return;
-        const row = document.createElement("div");
-        row.className = "quiz-option";
-        row.innerText = cleanOpt;
-        row.onclick = () => {
-          document.querySelectorAll(".quiz-option").forEach(o => o.classList.remove("selected"));
-          row.classList.add("selected");
-          document.getElementById("quiz-next-btn").disabled = false;
-        };
-        optContainer.appendChild(row);
-      });
-      document.getElementById("quiz-next-btn").disabled = true;
-      document.getElementById("quiz-next-btn").innerText = currentQuestionIndex === 4 ? "Submit Quiz Summary" : "Confirm & Next";
-    }
+        <div id="quizQuestionContainer">
+            <h3 id="quizQuestionText" style="margin-bottom:15px;">Loading question parameters...</h3>
+            <div id="quizOptionsWrapper"></div>
+        </div>
 
-    function nextQuestion() {
-      const selected = document.querySelector(".quiz-option.selected").innerText;
-      selectedAnswers.push(selected);
+        <div id="quizResultsContainer" style="display:none;">
+            <h3 style="color:#2b7a43;">Quiz Completed!</h3>
+            <p>Your Score: <strong id="quizFinalScore">0/5</strong></p>
+            <div id="quizReviewLog"></div>
+        </div>
+    </div>
 
-      const correctAns = activeQuizData.answers[currentQuestionIndex] ? activeQuizData.answers[currentQuestionIndex].trim() : "";
-      if(selected.toLowerCase() === correctAns.toLowerCase()) {
-        runtimeScore++;
-      }
+    <!-- 5. ADMIN CONTROL CONSOLE DASHBOARD (Admin Features 1, 2, 3, 4 & 5) -->
+    <div id="viewAdmin" class="view-section" style="max-width: 800px;">
+        <h2>Administrative Analytics Terminal</h2>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div style="background:#f1f3f5; padding:12px; border-radius:6px;">
+                <strong>Enrollments Filter (Day/Month)</strong>
+                <input type="month" id="adminEnrollmentFilter" style="margin-top:5px;">
+                <div id="adminEnrollmentCount" style="font-size:18px; font-weight:bold; margin-top:5px; color:#333;">0 Registrations</div>
+            </div>
+            <div style="background:#f1f3f5; padding:12px; border-radius:6px;">
+                <strong>Top Performers by Date</strong>
+                <input type="date" id="adminLeaderboardFilter" style="margin-top:5px;">
+            </div>
+        </div>
 
-      if(currentQuestionIndex < 4) {
-        currentQuestionIndex++;
-        renderCurrentQuestion();
-      } else {
-        commitQuizResults();
-      }
-    }
+        <h3>Current Top Monthly Performers (Top 3)</h3>
+        <ul id="adminTopPerformersList"></ul>
 
-    async function commitQuizResults() {
-      const nextBtn = document.getElementById("quiz-next-btn");
-      nextBtn.innerText = "⏳ Saving score tracking data..."; nextBtn.disabled = true;
+        <h3>Registered Candidate Base & Gamification Badges</h3>
+        <table id="adminCandidatesTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email / Institute</th>
+                    <th>Current Tier</th>
+                    <th>Manage Tier</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-      try {
-        const resp = await fetch(API_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "submitQuiz",
-            payload: { email: currentUser.email, quizDate: activeQuizData.date, score: runtimeScore }
-          })
-        });
-        const res = await resp.json();
-        if(res.success) {
-          alert(`Quiz completed! Final compiled score: ${runtimeScore}/5.`);
-          switchScreen("dashboard");
-        }
-      } catch(e) {
-        showToast("Error processing post request payload.");
-        nextBtn.disabled = false;
-      }
-    }
-
-    async function addQuizSubmit(e) {
-      e.preventDefault();
-      const btn = document.getElementById("admin-submit-btn");
-      btn.innerText = "⏳ Processing Publish Routine..."; btn.disabled = true;
-
-      const payload = {
-        quizDate: document.getElementById("adm-date").value,
-        description: document.getElementById("adm-desc").value,
-        q1: document.getElementById("adm-q1").value,
-        options1: document.getElementById("adm-opts1").value,
-        q2: "Sample Question 2?", q3: "Sample Question 3?", q4: "Sample Question 4?", q5: "Sample Question 5?",
-        options2: "A, B, C, D", options3: "A, B, C, D", options4: "A, B, C, D", options5: "A, B, C, D",
-        answers: `${document.getElementById("adm-ans1").value},A,A,A,A`
-      };
-
-      try {
-        const resp = await fetch(API_ENDPOINT, {
-          method: "POST",
-          body: JSON.stringify({ action: "addQuiz", payload: payload })
-        });
-        const res = await resp.json();
-        if(res.success) {
-          showToast("Quiz details appended into target cell!");
-          document.getElementById("admin-quiz-form").reset();
-        }
-      } catch(err) {
-        showToast("Error uploading parameters.");
-      } finally {
-        btn.innerText = "Publish to Sheet Array"; btn.disabled = false;
-      }
-    }
-
-    async function loadAdminData() {
-      const container = document.getElementById("admin-users-list");
-      container.innerText = "⏳ Fetching user mapping records...";
-      try {
-        const resp = await fetch(`${API_ENDPOINT}?action=getAdminData`);
-        const res = await resp.json();
-        if(res.success) {
-          container.innerHTML = "";
-          res.data.students.forEach(s => {
-            container.innerHTML += `<div style='padding:8px; border-bottom:1px solid #eee;'><strong>${s.name}</strong> (${s.email})<br/><span style='color:var(--text-muted); font-size:0.75rem;'>Status: ${s.status}</span></div>`;
-          });
-        }
-      } catch(e) { container.innerText = "Error tracking profile records."; }
-    }
-  </script>
+    <!-- Mount JavaScript Logic Framework Boilerplate Setup -->
+    <script src="app.js"></script>
 </body>
 </html>
