@@ -2,143 +2,332 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Quiz Portal PWA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Quiz Portal</title>
+    
+    <!-- PWA Standard Capabilities & High-Fidelity Theming -->
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 20px; background: #f4f6f9; color: #333; }
-        .view-section { display: none; max-width: 600px; margin: 0 auto; background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .view-section.active { display: block; }
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --bg-canvas: #f8f9fa;
+            --bg-surface: #ffffff;
+            --text-main: #202124;
+            --text-muted: #5f6368;
+            --border-color: #dadce0;
+            --success: #137333;
+            --success-bg: #e6f4ea;
+            --danger: #c5221f;
+            --danger-bg: #fce8e6;
+            --warning: #b06000;
+            --warning-bg: #fef7e0;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: 80px; /* Space for Mobile Bottom Nav Dock */
+        }
+
+        /* Responsive Global View Framework Wrapper */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .view-panel {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .view-panel.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Surface Components (Heuristic: Match System Standards) */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(60,64,67,0.1), 0 1px 2px rgba(60,64,67,0.06);
+        }
+
+        h1, h2, h3 { font-weight: 600; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.3px; }
+        h1 { font-size: 24px; }
+        h2 { font-size: 20px; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+
+        /* Form Controls (Heuristic: Prevent Input Errors Prematurely) */
         .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { background: #0066cc; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:hover { background: #0052a3; }
-        .error-banner { color: #d93838; background: #ffebeb; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; font-size: 14px; border: 1px solid #ffccd0; }
-        .success-banner { color: #2b7a43; background: #eafaf1; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: none; font-size: 14px; border: 1px solid #c7f3d6; }
-        .nav-header { display: flex; justify-content: space-between; max-width: 600px; margin: 0 auto 20px auto; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-        .nav-header span { cursor: pointer; color: #0066cc; font-weight: 500; }
-        .quiz-option { display: block; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 10px; cursor: pointer; background: #fafafa; }
-        .quiz-option:hover { background: #f0f7ff; border-color: #0066cc; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-surface);
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+        }
+
+        /* Dynamic Banners (Heuristic: Visibility of System Status) */
+        .banner { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; margin-bottom: 16px; display: none; }
+        .banner-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(197,34,31,0.2); }
+        .banner-success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(19,115,51,0.2); }
+
+        /* Buttons Structure */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+
+        /* Heuristic System Navigation Bottom Dock */
+        .nav-dock {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 64px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 25%;
+            transition: var(--transition);
+        }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+
+        /* Dashboard Stat Badges Grid Layout */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-box { padding: 16px; border-radius: var(--radius-sm); text-align: center; }
+        .stat-box-primary { background: #e8f0fe; color: var(--primary-dark); }
+        .stat-box-warning { background: var(--warning-bg); color: var(--warning); }
+        .stat-val { font-size: 28px; font-weight: 700; margin-bottom: 2px; }
+
+        /* Leaderboard UI Layout Rows */
+        .leaderboard-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .leaderboard-row:last-child { border-bottom: none; }
+        .rank-badge {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 12px; margin-right: 8px;
+        }
+        .rank-1 { background: #fdedc9; color: #b06000; }
+        .rank-2 { background: #e8eaed; color: #5f6368; }
+        .rank-3 { background: #fce8e6; color: #c5221f; }
+
+        /* Modernized Quiz Option Pill Arrays */
+        .option-pill {
+            display: block;
+            padding: 14px 16px;
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .option-pill:hover { border-color: var(--primary); background: #f4f8fe; }
+
+        /* Administrative Data Grid Matrix */
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 12px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        th { background: var(--bg-canvas); font-weight: 600; color: var(--text-muted); }
+
+        /* Gamification Achievement Badges Components */
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+        }
         .badge-Diamond { background: #e3f2fd; color: #0d47a1; }
-        .badge-Platinum { background: #eceff1; color: #263238; }
+        .badge-Platinum { background: #e0f2f1; color: #004d40; }
         .badge-Gold { background: #fffde7; color: #f57f17; }
-        .badge-Silver { background: #fafafa; color: #616161; }
-        .gdpr-zone { border: 1px solid #ffccd0; background: #fff5f5; padding: 16px; border-radius: 8px; margin-top: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; }
+        .badge-Silver { background: #f5f5f5; color: #212121; }
     </style>
 </head>
 <body>
 
-    <!-- Simple Dynamic Navigation Layout Router Component -->
-    <div class="nav-header">
-        <span onclick="app.switchView('viewAuth')">Login/Register</span>
-        <span onclick="app.switchView('viewDashboard')">Dashboard</span>
-        <span onclick="app.switchView('viewQuiz')">Quiz</span>
-        <span onclick="app.switchView('viewAdmin')">Admin</span>
-    </div>
+    <div class="app-container">
 
-    <!-- 1. ONBOARDING & AUTH REGISTRATION SECTION (Student Features 6 & 7) -->
-    <div id="viewAuth" class="view-section active">
-        <h2>Student Onboarding & Access Portal</h2>
-        <div id="authError" class="error-banner"></div>
-        <div id="authSuccess" class="success-banner"></div>
-        
-        <form id="formRegister">
-            <div class="form-group"><label>First Name</label><input type="text" id="regFirst" required></div>
-            <div class="form-group"><label>Last Name</label><input type="text" id="regLast" required></div>
-            <div class="form-group"><label>Mobile Number</label><input type="tel" id="regMobile" required></div>
-            <div class="form-group"><label>Institute Name</label><input type="text" id="regInstitute" required></div>
-            <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" required></div>
-            <button type="submit">Complete Registration</button>
-        </form>
-        <p style="text-align:center; font-size:13px; color:#666; margin-top:15px;">Note: A verification link will be emailed to activate authentication.</p>
-    </div>
-
-    <!-- 2. STUDENT DASHBOARD & LEADERBOARD VIEW (Student Features 2, 3, & 5) -->
-    <div id="viewDashboard" class="view-section">
-        <h2>Welcome Back, <span id="dashStudentName">Student</span></h2>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;">
-            <div style="background:#eef5fc; padding:15px; border-radius:8px; text-align:center;">
-                <h3 style="margin:0; font-size:28px; color:#0066cc;" id="statQuizCount">0</h3>
-                <small style="color:#555;">Total Quizzes Attempted</small>
-            </div>
-            <div style="background:#fef7ed; padding:15px; border-radius:8px; text-align:center;">
-                <h3 style="margin:0; font-size:28px; color:#c27803;" id="statMissedCount">0</h3>
-                <small style="color:#555;">Missed Quizzes This Month</small>
+        <!-- 1. AUTH / ONBOARDING VIEW -->
+        <div id="viewAuth" class="view-panel active">
+            <div class="card">
+                <h1>Create Account</h1>
+                <p>Register below to begin your dynamic daily assessment track.</p>
+                <div id="authError" class="banner banner-danger"></div>
+                <div id="authSuccess" class="banner banner-success"></div>
+                
+                <form id="formRegister">
+                    <div class="form-group"><label>First Name</label><input type="text" id="regFirst" required placeholder="John"></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" id="regLast" required placeholder="Doe"></div>
+                    <div class="form-group"><label>Mobile Number</label><input type="tel" id="regMobile" required placeholder="9876543210"></div>
+                    <div class="form-group"><label>Institute Name</label><input type="text" id="regInstitute" required placeholder="National Institute of Technology"></div>
+                    <div class="form-group"><label>Email ID</label><input type="email" id="regEmail" required placeholder="john.doe@institute.edu"></div>
+                    <button type="submit" class="btn btn-primary">Submit Registration</button>
+                </form>
             </div>
         </div>
 
-        <h3>Top 3 Performers Leaderboard</h3>
-        <ol id="leaderboardList" style="padding-left:20px; font-weight:500;"></ol>
-
-        <!-- 3. PROFILE SETTINGS & GDPR DATA DELETION INTERFACE (Student Feature 8) -->
-        <div class="gdpr-zone">
-            <h4 style="color:#d93838; margin:0 0 10px 0;">GDPR Account Controls & Privacy Protection</h4>
-            <p style="font-size:13px; margin:0 0 12px 0; color:#555;">You possess the absolute legal Right to Erasure. Closing your account completely purges your entire historical trace, quiz metrics, data schema rows, and verification profile permanently from our production database servers.</p>
-            <div class="form-group">
-                <label style="font-size:13px;">Reason for account closure:</label>
-                <textarea id="gdprReason" rows="2" placeholder="Provide reason for data purge..."></textarea>
+        <!-- 2. STUDENT DASHBOARD VIEW -->
+        <div id="viewDashboard" class="view-panel">
+            <h1 style="margin-bottom: 4px;">Hello, <span id="dashStudentName">Student</span></h1>
+            <p>Here is your assessment overview framework for this month.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-box stat-box-primary">
+                    <div class="stat-val" id="statQuizCount">0</div>
+                    <div style="font-size: 12px; font-weight: 500;">Quizzes Attempted</div>
+                </div>
+                <div class="stat-box stat-box-warning">
+                    <div class="stat-val" id="statMissedCount">0</div>
+                    <div style="font-size: 12px; font-weight: 500;">Quizzes Missed</div>
+                </div>
             </div>
-            <button type="button" id="btnGdprPurge" style="background:#d93838;">Wipe My Data & Close Account</button>
-        </div>
-    </div>
 
-    <!-- 4. DAILY INTERACTIVE QUIZ INTERFACE ENGINE (Student Features 1 & 4) -->
-    <div id="viewQuiz" class="view-section">
-        <h2 style="margin-bottom:5px;">Daily Quiz Arena</h2>
-        <p style="color:#666; margin:0 0 20px 0; font-size:14px;">Question <span id="quizCurrentIndex">1</span> of 5</p>
-        <div id="quizError" class="error-banner"></div>
-
-        <div id="quizQuestionContainer">
-            <h3 id="quizQuestionText" style="margin-bottom:15px;">Loading question parameters...</h3>
-            <div id="quizOptionsWrapper"></div>
-        </div>
-
-        <div id="quizResultsContainer" style="display:none;">
-            <h3 style="color:#2b7a43;">Quiz Completed!</h3>
-            <p>Your Score: <strong id="quizFinalScore">0/5</strong></p>
-            <div id="quizReviewLog"></div>
-        </div>
-    </div>
-
-    <!-- 5. ADMIN CONTROL CONSOLE DASHBOARD (Admin Features 1, 2, 3, 4 & 5) -->
-    <div id="viewAdmin" class="view-section" style="max-width: 800px;">
-        <h2>Administrative Analytics Terminal</h2>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;">
-            <div style="background:#f1f3f5; padding:12px; border-radius:6px;">
-                <strong>Enrollments Filter (Day/Month)</strong>
-                <input type="month" id="adminEnrollmentFilter" style="margin-top:5px;">
-                <div id="adminEnrollmentCount" style="font-size:18px; font-weight:bold; margin-top:5px; color:#333;">0 Registrations</div>
+            <div class="card">
+                <h2>Leaderboard Top 3</h2>
+                <p>Calculated aggregates of all student assessment scores filed.</p>
+                <div id="leaderboardList"></div>
             </div>
-            <div style="background:#f1f3f5; padding:12px; border-radius:6px;">
-                <strong>Top Performers by Date</strong>
-                <input type="date" id="adminLeaderboardFilter" style="margin-top:5px;">
+
+            <!-- GDPR Data Control Terminal Block (Heuristic: User Freedom & Control) -->
+            <div class="card" style="border-color: rgba(197,34,31,0.3);">
+                <h3 style="color: var(--danger);">Data Privacy Settings</h3>
+                <p>Under GDPR compliance parameters, you can permanently execute your Right to Erasure, purging your account profile records completely from our systems.</p>
+                <div class="form-group">
+                    <input type="text" id="gdprReason" placeholder="Reason for account closure (optional)">
+                </div>
+                <button type="button" id="btnGdprPurge" class="btn btn-danger">Wipe Data & Close Account</button>
             </div>
         </div>
 
-        <h3>Current Top Monthly Performers (Top 3)</h3>
-        <ul id="adminTopPerformersList"></ul>
+        <!-- 3. INTERACTIVE QUIZ ENGINE VIEW -->
+        <div id="viewQuiz" class="view-panel">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h2 style="margin: 0;">Daily Assessment</h2>
+                    <span id="quizStepIndicator" style="font-size: 13px; font-weight: 600; color: var(--primary); background: #e8f0fe; padding: 4px 8px; border-radius: 20px;">Q 1/5</span>
+                </div>
+                
+                <div id="quizQuestionContainer">
+                    <h3 id="quizQuestionText" style="font-size: 17px; margin-bottom: 20px;">Fetching item parameters...</h3>
+                    <div id="quizOptionsWrapper"></div>
+                </div>
 
-        <h3>Registered Candidate Base & Gamification Badges</h3>
-        <table id="adminCandidatesTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email / Institute</th>
-                    <th>Current Tier</th>
-                    <th>Manage Tier</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+                <div id="quizResultsContainer" style="display: none;">
+                    <div style="text-align: center; padding: 16px 0;">
+                        <div style="font-size: 48px; margin-bottom: 8px;">🎯</div>
+                        <h2 style="color: var(--success); margin-bottom: 4px;">Quiz Matrix Completed</h2>
+                        <p style="font-size: 16px; font-weight: 600; color: var(--text-main);">Final Score: <span id="quizFinalScore">0/5</span></p>
+                    </div>
+                    <div id="quizReviewLog" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ADMIN CONTROL VIEW -->
+        <div id="viewAdmin" class="view-panel">
+            <div class="card">
+                <h1>Admin Control Panel</h1>
+                <p>Manage candidate tiers and analyze cross-sectional data logs.</p>
+                
+                <div class="form-group">
+                    <label>Filter Enrollments (Monthly)</label>
+                    <input type="month" id="adminEnrollmentFilter" value="2026-07">
+                </div>
+                <div id="adminEnrollmentCount" style="font-size: 15px; font-weight: 600; color: var(--primary); margin-bottom: 20px;">0 Total Registrations</div>
+                
+                <div class="form-group">
+                    <label>Filter Performers by Date</label>
+                    <input type="date" id="adminLeaderboardFilter" value="2026-07-15">
+                </div>
+                <h3 style="font-size: 16px; margin-top: 12px;">Top Performers on Selected Date</h3>
+                <div id="adminTopPerformersList" style="margin-bottom: 20px;"></div>
+            </div>
+
+            <div class="card" style="padding: 16px 8px;">
+                <h2 style="padding: 0 12px;">Candidate Management Registry</h2>
+                <div class="table-responsive">
+                    <table id="adminCandidatesTable">
+                        <thead>
+                            <tr>
+                                <th>Student Details</th>
+                                <th>Achievement Tier</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Mount JavaScript Logic Framework Boilerplate Setup -->
+    <!-- PERSISTENT MOBILE NAVIGATION BOTTOM DOCK -->
+    <div class="nav-dock">
+        <div class="nav-item active" onclick="app.switchView('viewAuth', this)"><div class="nav-icon">👤</div>Onboard</div>
+        <div class="nav-item" onclick="app.switchView('viewDashboard', this)"><div class="nav-icon">📊</div>Dashboard</div>
+        <div class="nav-item" onclick="app.switchView('viewQuiz', this)"><div class="nav-icon">✏️</div>Quiz</div>
+        <div class="nav-item" onclick="app.switchView('viewAdmin', this)"><div class="nav-icon">⚙️</div>Admin</div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
