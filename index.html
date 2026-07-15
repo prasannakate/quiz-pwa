@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Production Quiz Ecosystem</title>
+    <title>Enterprise Quiz Gateway</title>
     <style>
         :root {
             --primary: #1a73e8;
@@ -18,7 +18,7 @@
             --radius-sm: 8px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-canvas); color: var(--text-main); padding-bottom: 80px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-canvas); color: var(--text-main); padding-bottom: 85px; }
         .app-container { max-width: 480px; margin: 0 auto; padding: 16px; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
@@ -30,25 +30,31 @@
         input { width: 100%; padding: 12px; font-size: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-canvas); }
         input:focus { outline: none; border-color: var(--primary); background: var(--bg-surface); }
         .btn { width: 100%; padding: 14px; font-size: 15px; font-weight: 600; border-radius: var(--radius-sm); border: none; cursor: pointer; background: var(--primary); color: white; }
-        .option-pill { padding: 16px; background: var(--bg-canvas); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; cursor: pointer; font-weight: 500; }
+        .btn:disabled { background: var(--border-color); cursor: not-allowed; }
+        .option-pill { padding: 16px; background: var(--bg-canvas); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
         .option-pill:hover { border-color: var(--primary); background: #f4f8fe; }
         .leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
         .app-dock { position: fixed; bottom: 0; left: 0; right: 0; height: 68px; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .dock-tab { display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 500; color: var(--text-muted); cursor: pointer; width: 33%; }
         .dock-tab.active { color: var(--primary); font-weight: 600; }
-        .loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; display: none; font-weight: 600; }
+        .loader { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; display: none; font-weight: 600; }
+        .badge { display: inline-block; padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; margin-top: 6px; }
+        .badge.false { background: #fef7e0; color: #b06000; }
+        .badge.true { background: #e6f4ea; color: var(--success); }
     </style>
 </head>
 <body>
 
-    <div id="loader" class="loader">Processing Database Sync...</div>
+    <div id="loader" class="loader">
+        <div style="margin-bottom: 10px;">Syncing with Central Databases...</div>
+    </div>
 
     <div class="app-container">
-        <!-- REGISTRATION ENGINE -->
+        <!-- REGISTRATION / IDENTIFICATION ENGINE -->
         <div id="viewRegister" class="view-panel active">
             <div class="card">
-                <h1>Candidate Registration</h1>
-                <p>Initialize token values inside Sheet1 parameters.</p>
+                <h1>Ecosystem Registration</h1>
+                <p>Register your account to generate secure credentials inside Sheet1.</p>
                 <form id="regForm">
                     <div class="form-group"><label>First Name</label><input type="text" id="inf1" required></div>
                     <div class="form-group"><label>Last Name</label><input type="text" id="inf2" required></div>
@@ -60,51 +66,52 @@
             </div>
         </div>
 
-        <!-- DASHBOARD ENGINE -->
+        <!-- OPERATOR MANAGEMENT CONSOLE -->
         <div id="viewDashboard" class="view-panel">
             <div class="card">
-                <h1>Ecosystem Console</h1>
-                <div id="userInfoBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
+                <h1>Account Console</h1>
+                <div id="userInfoBox" style="font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 5px;"></div>
+                <div id="verificationBadge"></div>
             </div>
             <div class="card">
-                <h2>Today's Leaderboard</h2>
+                <h2>Campaign Leaderboard</h2>
                 <div id="leaderboardContainer" style="margin-top: 12px;"></div>
             </div>
         </div>
 
-        <!-- RUNTIME QUESTION WORKSPACE -->
+        <!-- TRANSACTIONAL WORKSPACE RUNTIME -->
         <div id="viewQuiz" class="view-panel">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-                    <span id="quizDesc" style="font-weight:600; color:var(--text-muted);">Active Matrix</span>
+                    <span id="quizDesc" style="font-weight:600; color:var(--text-muted);">Parsing Rows...</span>
                     <span id="quizProgress" style="font-weight:700; color:var(--primary);">Q 0/5</span>
                 </div>
                 <div id="quizWorkspace">
-                    <h3 id="questionText" style="margin-bottom:16px; font-size:16px;">Loading target data rows...</h3>
+                    <h3 id="questionText" style="margin-bottom:18px; font-size:16px; line-height:1.4;">Targeting indices...</h3>
                     <div id="optionsContainer"></div>
                 </div>
                 <div id="completionScreen" style="display:none; text-align:center; padding:20px 0;">
-                    <h2 style="color:var(--success);">Evaluation Metrics Dispatched</h2>
-                    <p>Row record saved to Submissions tracking tab layout.</p>
+                    <h2 id="completionTitle" style="color:var(--success); margin-bottom:10px;">Metrics Saved</h2>
+                    <p id="completionBody">Score successfully logged to Submissions sheet.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DOCK NAVIGATION HUD -->
+    <!-- MAIN HUD NAVIGATION SYSTEM -->
     <div class="app-dock">
-        <div class="dock-tab active" onclick="app.nav('viewRegister', this)"><div>👤</div>Register</div>
-        <div class="dock-tab" onclick="app.nav('viewDashboard', this)"><div>📊</div>Dashboard</div>
+        <div class="dock-tab active" onclick="app.nav('viewRegister', this)"><div>👤</div>Identity</div>
+        <div class="dock-tab" onclick="app.nav('viewDashboard', this)"><div>📊</div>Console</div>
         <div class="dock-tab" onclick="app.nav('viewQuiz', this)"><div>📝</div>Live Quiz</div>
     </div>
 
     <script>
         const app = {
-            // !!! PASTE YOUR deployed Web App URL executable below !!!
-            URL: "https://script.google.com/macros/s/AKfycbz_SAMPLE_ID_HERE/exec",
+            // !!! REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL !!!
+            URL: "https://script.google.com/macros/s/AKfycbzMvgYwSoROZDIugMiAllXxIk5S9aKvNtNtvFQBuKrnUm_1NmpEdSs9G-JGWznQyFuMjQ/exec",
             
             state: {
-                user: JSON.parse(localStorage.getItem('quiz_user')) || null,
+                user: JSON.parse(localStorage.getItem('quiz_session_node')) || null,
                 quiz: null,
                 currentIdx: 0,
                 score: 0,
@@ -114,8 +121,7 @@
             init: function() {
                 document.getElementById('regForm').addEventListener('submit', (e) => { e.preventDefault(); this.register(); });
                 if(this.state.user) {
-                    this.showActiveUserHUD();
-                    this.nav('viewDashboard', document.querySelectorAll('.dock-tab')[1]);
+                    this.verifySessionNode();
                 }
                 this.loadActiveQuizRow();
             },
@@ -130,6 +136,24 @@
                 if(id === 'viewQuiz') this.startQuizMatrix();
             },
 
+            verifySessionNode: function() {
+                fetch(`${this.URL}?action=checkUserStatus&email=${encodeURIComponent(this.state.user.email)}&token=${this.state.user.token}`)
+                .then(res => res.json())
+                .then(res => {
+                    if(res.status === "Valid") {
+                        this.state.user.isVerified = res.isVerified;
+                        this.state.user.status = res.accountStatus;
+                        localStorage.setItem('quiz_session_node', JSON.stringify(this.state.user));
+                        this.showActiveUserHUD();
+                        this.nav('viewDashboard', document.querySelectorAll('.dock-tab')[1]);
+                    } else {
+                        localStorage.removeItem('quiz_session_node');
+                        this.state.user = null;
+                        this.nav('viewRegister', document.querySelectorAll('.dock-tab')[0]);
+                    }
+                });
+            },
+
             register: function() {
                 document.getElementById('loader').style.display = 'flex';
                 const payload = {
@@ -137,27 +161,45 @@
                     lastName: document.getElementById('inf2').value,
                     mobile: document.getElementById('inf3').value,
                     institute: document.getElementById('inf4').value,
-                    email: document.getElementById('inf5').value.toLowerCase()
+                    email: document.getElementById('inf5').value.toLowerCase().trim()
                 };
 
+                // Executing a readable text POST to bypass standard CORS preflight restrictions
                 fetch(this.URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     body: JSON.stringify({ action: 'register', data: payload })
-                }).then(() => {
+                })
+                .then(res => res.json())
+                .then(res => {
                     document.getElementById('loader').style.display = 'none';
-                    // Save context securely locally to prevent screen lock resets
-                    this.state.user = payload;
-                    localStorage.setItem('quiz_user', JSON.stringify(payload));
-                    this.showActiveUserHUD();
-                    this.nav('viewDashboard', document.querySelectorAll('.dock-tab')[1]);
+                    if(res.status === "Success" || res.status === "Exists") {
+                        this.state.user = {
+                            ...payload,
+                            token: res.token,
+                            isVerified: res.isVerified,
+                            status: res.accountStatus
+                        };
+                        localStorage.setItem('quiz_session_node', JSON.stringify(this.state.user));
+                        this.showActiveUserHUD();
+                        this.nav('viewDashboard', document.querySelectorAll('.dock-tab')[1]);
+                    } else {
+                        alert("Error synchronizing profile context: " + res.message);
+                    }
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    alert("Network Pipeline Error: Verify execution deployment URL parameters.");
                 });
             },
 
             showActiveUserHUD: function() {
                 document.getElementById('userInfoBox').innerHTML = `
                     Operator: <strong>${this.state.user.firstName} ${this.state.user.lastName}</strong><br>
-                    Routing Node: <span>${this.state.user.email}</span>
+                    Routing Node: <span>${this.state.user.email}</span><br>
+                    Access Token: <code style="background:#eee;padding:2px 4px;font-size:11px;">${this.state.user.token}</code>
+                `;
+                document.getElementById('verificationBadge').innerHTML = `
+                    <span class="badge ${this.state.user.isVerified.toLowerCase()}">Verification Status: ${this.state.user.isVerified}</span>
+                    <span class="badge true" style="background:#e8f0fe;color:var(--primary)">System Status: ${this.state.user.status}</span>
                 `;
             },
 
@@ -169,19 +211,20 @@
                         this.state.quiz = res.quiz;
                         document.getElementById('quizDesc').innerText = res.quiz.description;
                     } else {
-                        document.getElementById('questionText').innerText = "System Alert: No active evaluation row scheduled for today.";
+                        document.getElementById('quizDesc').innerText = "System Inactive";
+                        document.getElementById('questionText').innerText = "No operations scheduled for date: " + this.state.todayStr;
                     }
                 });
             },
 
             loadLeaderboard: function() {
                 const box = document.getElementById('leaderboardContainer');
-                box.innerHTML = "Querying log indexes...";
+                box.innerHTML = "Querying data row logs...";
                 fetch(`${this.URL}?action=getLeaderboard&date=${this.state.todayStr}`)
                 .then(res => res.json())
                 .then(data => {
                     box.innerHTML = "";
-                    if(data.length === 0) { box.innerHTML = "<p>No entries found for this campaign.</p>"; return; }
+                    if(!data || data.length === 0) { box.innerHTML = "<p>No entries logged for this row campaign.</p>"; return; }
                     data.forEach((row, idx) => {
                         box.innerHTML += `
                             <div class="leaderboard-item">
@@ -193,6 +236,11 @@
             },
 
             startQuizMatrix: function() {
+                if(!this.state.user) {
+                    alert("Please register an identity profile prior to executing matrices.");
+                    this.nav('viewRegister', document.querySelectorAll('.dock-tab')[0]);
+                    return;
+                }
                 if(!this.state.quiz) { return; }
                 this.state.currentIdx = 0;
                 this.state.score = 0;
@@ -212,13 +260,17 @@
                 const targetBox = document.getElementById('optionsContainer');
                 targetBox.innerHTML = "";
 
+                if (!step.o || step.o.length === 0 || step.o[0] === "") {
+                    targetBox.innerHTML = "<p style='color:var(--danger);font-size:13px;'>Data configuration discrepancy in Quizzes tab option array.</p>";
+                    return;
+                }
+
                 step.o.forEach(opt => {
                     const pill = document.createElement('div');
                     pill.className = "option-pill";
                     pill.innerText = opt.trim();
                     pill.onclick = () => {
-                        // Normalize and match against index keys or literal values
-                        if(opt.trim().toLowerCase() === step.a.trim().toLowerCase()) { this.state.score++; }
+                        if(opt.trim().toLowerCase() === step.a.toLowerCase()) { this.state.score++; }
                         this.state.currentIdx++;
                         this.renderQuizStep();
                     };
@@ -227,24 +279,40 @@
             },
 
             submitFinalMetrics: function() {
-                if(!this.state.user) { alert("Missing operational identity profiles context."); return; }
                 document.getElementById('loader').style.display = 'flex';
 
                 fetch(this.URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     body: JSON.stringify({
                         action: 'submitScore',
                         data: {
                             email: this.state.user.email,
-                            quizDate: this.state.todayStr,
+                            quizDate: this.state.quiz.quizDate,
                             score: this.state.score
                         }
                     })
-                }).then(() => {
+                })
+                .then(res => res.json())
+                .then(res => {
                     document.getElementById('loader').style.display = 'none';
                     document.getElementById('quizWorkspace').style.display = 'none';
                     document.getElementById('completionScreen').style.display = 'block';
+                    
+                    const title = document.getElementById('completionTitle');
+                    const body = document.getElementById('completionBody');
+
+                    if(res.status === "Success") {
+                        title.innerText = "Metrics Dispatched Successfully";
+                        title.style.color = "var(--success)";
+                        body.innerText = `Your performance metric (${this.state.score}/5) has been permanently indexed under Submissions.`;
+                    } else if(res.status === "Duplicate") {
+                        title.innerText = "Submission Rejected";
+                        title.style.color = "var(--danger)";
+                        body.innerText = "You have already completed this daily quiz campaign. Duplicate logs are rejected.";
+                    }
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    alert("Submission error encountered during transactional row write.");
                 });
             }
         };
