@@ -38,7 +38,7 @@
 
     window.addEventListener('load', () => {
       if (!currentUserEmail) {
-        renderRegistration();
+        renderAuth('login');
       } else {
         loadDashboard();
       }
@@ -48,6 +48,12 @@
     async function callAPI(action, data = {}) {
       try {
         const payload = { action: action, email: currentUserEmail, ...data };
+        
+        // Include admin password in requests if the user is authenticated as an admin
+        const adminPass = sessionStorage.getItem('admin_password');
+        if (adminPass) {
+          payload.password = adminPass;
+        }
         
         // Content-Type must remain text/plain to force browsers to skip CORS preflight OPTIONS requests
         const response = await fetch(API_URL, {
@@ -71,8 +77,51 @@
       }
     }
 
-    function renderRegistration() {
+    // Displays the sign-in/register switcher tabs
+    function renderAuth(view = 'login') {
+      const isLogin = view === 'login';
       document.getElementById('app-content').innerHTML = `
+        <div class="space-y-6">
+          <div class="flex border-b border-slate-200">
+            <button onclick="renderAuth('login')" class="w-1/2 pb-3 text-sm font-bold border-b-2 transition ${isLogin ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">Sign In</button>
+            <button onclick="renderAuth('register')" class="w-1/2 pb-3 text-sm font-bold border-b-2 transition ${!isLogin ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}">Register</button>
+          </div>
+
+          ${isLogin ? renderLoginForm() : renderRegisterForm()}
+          
+          <div class="pt-6 text-center border-t border-slate-100">
+            <button onclick="renderAdminLogin()" class="text-xs text-slate-400 hover:text-indigo-600 font-semibold transition">
+              Access Admin Console ⚙️
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLoginForm() {
+      return `
+        <div class="space-y-4">
+          <div class="text-center pb-2">
+            <h2 class="text-2xl font-bold text-slate-900">Welcome Back</h2>
+            <p class="text-sm text-slate-500 mt-1">Enter your registered email to access your profile portal.</p>
+          </div>
+          
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
+              <input id="login-email" type="email" class="w-full border border-slate-200 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="student@example.com">
+            </div>
+            
+            <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm tracking-wide shadow-md hover:bg-indigo-700 transition mt-4">
+              Sign In to Portal
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRegisterForm() {
+      return `
         <div class="space-y-4">
           <div class="text-center pb-2">
             <h2 class="text-2xl font-bold text-slate-900">Student Onboarding</h2>
@@ -109,6 +158,33 @@
       `;
     }
 
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email) {
+        alert("Email field is mandatory to locate your account profile.");
+        return;
+      }
+
+      document.getElementById('app-content').innerHTML = `
+        <div class="text-center py-20">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
+          <p class="mt-4 text-sm text-slate-500">Verifying account credentials...</p>
+        </div>
+      `;
+
+      currentUserEmail = email;
+      const res = await callAPI('getDashboard');
+
+      if (res && res.error) {
+        alert(res.error);
+        currentUserEmail = '';
+        renderAuth('login');
+      } else {
+        localStorage.setItem('quiz_user_email', email);
+        renderDashboard(res);
+      }
+    }
+
     async function handleRegister() {
       const data = {
         firstName: document.getElementById('reg-fn').value.trim(),
@@ -138,7 +214,7 @@
         loadDashboard();
       } else {
         alert(res && res.error ? res.error : "Registration was rejected by the server.");
-        renderRegistration();
+        renderAuth('register');
       }
     }
 
@@ -154,7 +230,8 @@
       if (data && data.error) {
         alert(data.error);
         localStorage.removeItem('quiz_user_email');
-        renderRegistration();
+        currentUserEmail = '';
+        renderAuth('login');
         return;
       }
       renderDashboard(data);
@@ -178,9 +255,14 @@
 
       document.getElementById('app-content').innerHTML = `
         <div class="space-y-6">
-          <div>
-            <h2 class="text-xl font-bold text-slate-900">Welcome, ${data.firstName}!</h2>
-            <p class="text-xs text-slate-400">Review metrics or load dynamic content loops.</p>
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">Welcome, ${data.firstName}!</h2>
+              <p class="text-xs text-slate-400">Review metrics or load dynamic content loops.</p>
+            </div>
+            <button onclick="handleLogout()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-bold transition">
+              Logout
+            </button>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -210,6 +292,14 @@
           </div>
         </div>
       `;
+    }
+
+    function handleLogout() {
+      if (confirm("Are you sure you want to log out of your quiz portal profile?")) {
+        localStorage.removeItem('quiz_user_email');
+        currentUserEmail = '';
+        renderAuth('login');
+      }
     }
 
     async function startQuizFlow() {
@@ -365,6 +455,190 @@
           loadDashboard();
         }
       }
+    }
+
+    // =========================================================================
+    // ADMIN FLOW INTERFACE MODULES
+    // =========================================================================
+
+    function renderAdminLogin() {
+      document.getElementById('app-content').innerHTML = `
+        <div class="space-y-6">
+          <div class="text-center pb-2">
+            <h2 class="text-2xl font-bold text-slate-900">Admin Authentication</h2>
+            <p class="text-sm text-slate-500 mt-1">Provide the master passcode to enter the management console.</p>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Admin Passcode</label>
+              <input id="admin-pass" type="password" class="w-full border border-slate-200 p-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="••••••••">
+            </div>
+            
+            <div class="flex gap-2">
+              <button onclick="renderAuth('login')" class="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition">
+                Back
+              </button>
+              <button onclick="handleAdminLogin()" class="w-2/3 bg-slate-950 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-sm tracking-wide shadow-md transition">
+                Authenticate
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleAdminLogin() {
+      const pass = document.getElementById('admin-pass').value.trim();
+      if (!pass) {
+        alert("Passcode cannot be left blank.");
+        return;
+      }
+      sessionStorage.setItem('admin_password', pass);
+      loadAdminDashboard();
+    }
+
+    async function loadAdminDashboard() {
+      document.getElementById('app-content').innerHTML = `
+        <div class="text-center py-20">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-950 mx-auto"></div>
+          <p class="mt-4 text-sm text-slate-500">Retrieving question database and logs...</p>
+        </div>
+      `;
+
+      const res = await callAPI('getAdminQuestions');
+      if (res && res.success === false) {
+        alert(res.error || "Authentication verification failed.");
+        sessionStorage.removeItem('admin_password');
+        renderAdminLogin();
+      } else {
+        renderAdminDashboard(res.questions || []);
+      }
+    }
+
+    function renderAdminDashboard(questions) {
+      const todayISO = new Date().toISOString().split('T')[0];
+      
+      let listHtml = questions.map(q => `
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-xs space-y-1 shadow-sm">
+          <div class="flex justify-between items-center text-slate-400 font-bold mb-1">
+            <span>📅 Target Date: ${q.date}</span>
+            <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-[10px]">Key: ${q.answer}</span>
+          </div>
+          <p class="font-bold text-slate-800 leading-snug">${q.question}</p>
+          <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-500 pt-1">
+            <span>A: ${q.optionA}</span>
+            <span>B: ${q.optionB}</span>
+            <span>C: ${q.optionC}</span>
+            <span>D: ${q.optionD}</span>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('app-content').innerHTML = `
+        <div class="space-y-6">
+          <div class="flex justify-between items-center pb-2 border-b">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">Admin Panel</h2>
+              <p class="text-xs text-slate-400">Manage daily testing inventory.</p>
+            </div>
+            <button onclick="handleAdminLogout()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-bold transition">
+              Exit Panel
+            </button>
+          </div>
+
+          <!-- Question Input Form -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+            <h3 class="font-bold text-sm text-slate-800">➕ Add New Question</h3>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div class="col-span-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Target Date</label>
+                <input id="q-date" type="date" value="${todayISO}" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="col-span-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Question Text</label>
+                <input id="q-text" type="text" placeholder="What does HTML stand for?" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Option A</label>
+                <input id="q-a" type="text" placeholder="Choice A" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Option B</label>
+                <input id="q-b" type="text" placeholder="Choice B" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Option C</label>
+                <input id="q-c" type="text" placeholder="Choice C" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Option D</label>
+                <input id="q-d" type="text" placeholder="Choice D" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="col-span-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Correct Answer Key</label>
+                <select id="q-correct" class="w-full border border-slate-200 p-2 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                  <option value="A">Option A</option>
+                  <option value="B">Option B</option>
+                  <option value="C">Option C</option>
+                  <option value="D">Option D</option>
+                </select>
+              </div>
+            </div>
+
+            <button onclick="handleAddQuestionSubmit()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs tracking-wide shadow-sm transition mt-2">
+              Commit to Question Database
+            </button>
+          </div>
+
+          <!-- Existing Questions List -->
+          <div class="space-y-2">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-400">Current Question Inventory</h3>
+            <div class="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              ${listHtml || '<p class="text-xs text-slate-400 py-4 text-center">No loaded questions found inside the quizzes tab.</p>'}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleAddQuestionSubmit() {
+      const data = {
+        date: document.getElementById('q-date').value,
+        question: document.getElementById('q-text').value.trim(),
+        optionA: document.getElementById('q-a').value.trim(),
+        optionB: document.getElementById('q-b').value.trim(),
+        optionC: document.getElementById('q-c').value.trim(),
+        optionD: document.getElementById('q-d').value.trim(),
+        answer: document.getElementById('q-correct').value
+      };
+
+      if (!data.date || !data.question || !data.optionA || !data.optionB || !data.optionC || !data.optionD || !data.answer) {
+        alert("All fields are mandatory to record a functional quiz question.");
+        return;
+      }
+
+      document.getElementById('app-content').innerHTML = `
+        <div class="text-center py-20">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto"></div>
+          <p class="mt-4 text-sm text-slate-500">Processing database write request...</p>
+        </div>
+      `;
+
+      const response = await callAPI('addQuestion', { data: data });
+      if (response && response.success) {
+        alert(response.message);
+        loadAdminDashboard();
+      } else {
+        alert(response && response.error ? response.error : "Question append rejected by system.");
+        loadAdminDashboard();
+      }
+    }
+
+    function handleAdminLogout() {
+      sessionStorage.removeItem('admin_password');
+      renderAuth('login');
     }
   </script>
 </body>
